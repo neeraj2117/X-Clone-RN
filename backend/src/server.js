@@ -1,18 +1,39 @@
 import express from "express";
-import { ENV } from "./config/env.js";
-import {connectDB} from "./config/db.js";
+import cors from "cors";
+import {clerkMiddleware} from "@clerk/express";
 
+import userRoutes from "./routes/user.route.js";
+
+import { ENV } from "./config/env.js";
+import { connectDB } from "./config/db.js";
 
 const app = express();
 
-connectDB();
+// middlewares
+app.use(cors());
+app.use(express.json());
+app.use(clerkMiddleware());
 
 app.get("/", (req, res) => {
-    res.send("Hello from the backend!");
+  res.send("Hello from the backend!");
 });
 
-app.listen(ENV.PORT, () => {
-    console.log(`Server running on port ${ENV.PORT}`);
-});
+// routes
+app.use("/api/users", userRoutes);
+
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(ENV.PORT, () => {
+      console.log(`Server is running on port ${ENV.PORT}`);
+    });
+  } catch (error) {
+    console.error("Error starting the server:", error);
+    process.exit(1);
+  }
+};
+startServer();
 
 export default app;
